@@ -69,7 +69,7 @@ create table if not exists public.builds (
   name text not null check (length(trim(name)) between 1 and 80),
   components jsonb not null check (public.valid_build_components(components)),
   rgb_color text not null default '#69f2b2' check (rgb_color ~ '^#[0-9a-fA-F]{6}$'),
-  rgb_mode text not null default 'static' check (rgb_mode in ('static','rainbow','breathe')),
+  rgb_mode text not null default 'static' check (rgb_mode in ('static','rainbow','breathe','rgb')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
