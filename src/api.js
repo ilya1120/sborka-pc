@@ -21,6 +21,9 @@ export async function getProfile(user) {
 
 export function explainError(error) {
   const message = String(error?.message || '');
+  if (message.includes('Invalid login credentials')) return 'Неверная почта или пароль.';
+  if (message.includes('already registered')) return 'Этот email уже зарегистрирован. Перейдите к входу.';
+  if (message.includes('Password') || message.includes('password')) return 'Пароль не принят. Используйте новый пароль длиной от 8 символов.';
   if (message.includes('rate limit')) return 'Слишком много запросов. Попробуйте немного позже.';
   if (message.includes('Signups not allowed') || message.includes('User not found')) return 'Аккаунт не найден. Сначала зарегистрируйтесь.';
   if (message.includes('row-level security') || error?.code === '42501') return 'Недостаточно прав для этого действия.';

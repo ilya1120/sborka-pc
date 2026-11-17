@@ -215,23 +215,36 @@ function setLighting(color = rgbColor, mode = rgbMode) {
 }
 
 function showAuth(register = false) {
-  const body = openPanel(register ? 'Создать аккаунт' : 'С возвращением', 'Вход по одноразовой ссылке на почту.');
+  const body = openPanel(register ? 'Создать аккаунт' : 'С возвращением', 'Вход по электронной почте и паролю.');
   if (!database) {
     body.innerHTML = '<div class="empty-state">Авторизация появится после подключения проекта Supabase. Пока можно собрать ПК и рассмотреть его в 3D. Текущий черновик сохраняется в этом браузере.</div>';
     return;
   }
-  body.innerHTML = `<form id="auth-form"><label class="field-label">Электронная почта<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254"/></label><p class="muted">${register ? 'После перехода по ссылке создадим аккаунт клиента.' : 'Отправим ссылку для входа в существующий аккаунт.'}</p><button class="primary-button" type="submit">${register ? 'Зарегистрироваться' : 'Получить ссылку'}</button><p id="auth-status" role="status"></p></form><button class="secondary-button" id="auth-switch">${register ? 'У меня уже есть аккаунт' : 'Создать аккаунт'}</button>`;
+  body.innerHTML = `<form id="auth-form"><label class="field-label">Электронная почта<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254"/></label><label class="field-label">Пароль<input name="password" type="password" autocomplete="${register ? 'new-password' : 'current-password'}" required minlength="8" maxlength="128" placeholder="Не менее 8 символов"/></label>${register ? '<label class="field-label">Повторите пароль<input name="confirmation" type="password" autocomplete="new-password" required minlength="8" maxlength="128"/></label>' : ''}<p class="muted">${register ? 'Создадим аккаунт клиента. Можно сразу сохранять свои сборки.' : 'Войдите, чтобы открыть сохранённые сборки.'}</p><button class="primary-button" type="submit">${register ? 'Зарегистрироваться' : 'Войти'}</button><p id="auth-status" role="status"></p></form><button class="secondary-button" id="auth-switch">${register ? 'У меня уже есть аккаунт' : 'Создать аккаунт'}</button>`;
   body.querySelector('#auth-switch').onclick = () => showAuth(!register);
   body.querySelector('#auth-form').onsubmit = async event => {
     event.preventDefault();
     const button = event.submitter;
     const status = body.querySelector('#auth-status');
-    button.disabled = true; status.textContent = 'Отправляем письмо…';
+    button.disabled = true; status.textContent = register ? 'Создаём аккаунт…' : 'Выполняем вход…';
     try {
-      const email = new FormData(event.target).get('email').trim();
-      const { error } = await database.auth.signInWithOtp({ email, options: { shouldCreateUser: register, emailRedirectTo: location.origin + location.pathname } });
+      const values = new FormData(event.target);
+      const email = values.get('email').trim();
+      const password = values.get('password');
+      if (register && password !== values.get('confirmation')) {
+        status.textContent = 'Пароли не совпадают.';
+        return;
+      }
+      const { data, error } = register
+        ? await database.auth.signUp({ email, password })
+        : await database.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      status.textContent = 'Письмо отправлено. Откройте ссылку в этом браузере. Проверьте также папку «Спам».';
+      if (register && !data.session) {
+        status.textContent = 'Не удалось сразу войти. Если аккаунт уже существует, перейдите к форме входа.';
+        return;
+      }
+      if (panel.open) panel.close();
+      toast(register ? 'Аккаунт создан' : 'Вход выполнен');
     } catch (error) { status.textContent = explainError(error); }
     finally { button.disabled = false; }
   };
@@ -240,14 +253,31 @@ function showAuth(register = false) {
 function showAccount() {
   if (!user) return showAuth();
   const body = openPanel('Мой профиль');
-  body.innerHTML = `<p class="account-email">${escape(user.email)}</p><p class="role-label">${profile?.role === 'admin' ? 'Администратор' : 'Клиент'}</p><button class="primary-button" id="profile-builds">Мои сборки ${icon('arrow')}</button>${profile?.role === 'admin' ? '<button class="secondary-button" id="admin-open">Панель администратора</button>' : ''}<button class="secondary-button" id="sign-out">Выйти из аккаунта</button>`;
+  body.innerHTML = `<p class="account-email">${escape(user.email)}</p><p class="role-label">${profile?.role === 'admin' ? 'Администратор' : 'Клиент'}</p><button class="primary-button" id="profile-builds">Мои сборки ${icon('arrow')}</button>${profile?.role === 'admin' ? '<button class="secondary-button" id="admin-open">Панель администратора</button>' : ''}<button class="secondary-button" id="set-password">Установить или изменить пароль</button><button class="secondary-button" id="sign-out">Выйти из аккаунта</button>`;
   body.querySelector('#profile-builds').onclick = showSaved;
   body.querySelector('#admin-open')?.addEventListener('click', showAdmin);
+  body.querySelector('#set-password').onclick = showPasswordForm;
   body.querySelector('#sign-out').onclick = async event => {
     event.target.disabled = true;
     const { error } = await database.auth.signOut();
     if (error) { toast(explainError(error)); event.target.disabled = false; return; }
     currentBuildId = null; panel.close(); toast('Вы вышли из аккаунта');
+  };
+}
+
+function showPasswordForm() {
+  if (!user) return showAuth();
+  const body = openPanel('Пароль аккаунта', 'Установите пароль для последующих входов.');
+  body.innerHTML = '<form id="password-form"><label class="field-label">Новый пароль<input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128"/></label><label class="field-label">Повторите пароль<input name="confirmation" type="password" autocomplete="new-password" required minlength="8" maxlength="128"/></label><button class="primary-button" type="submit">Сохранить пароль</button><p id="password-status" role="status"></p></form>';
+  body.querySelector('form').onsubmit = async event => {
+    event.preventDefault();
+    const values = new FormData(event.target);
+    const status = body.querySelector('#password-status');
+    if (values.get('password') !== values.get('confirmation')) { status.textContent = 'Пароли не совпадают.'; return; }
+    event.submitter.disabled = true;
+    const { error } = await database.auth.updateUser({ password: values.get('password') });
+    if (error) { status.textContent = explainError(error); event.submitter.disabled = false; return; }
+    panel.close(); toast('Пароль сохранён');
   };
 }
 
