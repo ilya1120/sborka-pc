@@ -1,0 +1,27 @@
+name: Update DNS prices
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: dns-prices
+  cancel-in-progress: false
+jobs:
+  update:
+    # Переменная включает расписание после настройки ключей и прямых ссылок DNS.
+    if: vars.DNS_PRICE_SYNC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/update-prices.js
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
