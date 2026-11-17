@@ -306,9 +306,17 @@ export class PCScene {
     });
     if (this.powered && !reduced) this.fans.forEach(fan => { fan.rotation.z -= delta * 13; });
     const color = new THREE.Color(this.rgbColor);
-    if (this.rgbMode === 'rainbow' && !reduced) color.setHSL((this.time * 0.08) % 1, 0.85, 0.62);
-    const intensity = this.powered ? (this.rgbMode === 'breathe' && !reduced ? 0.5 + (Math.sin(this.time * 2) + 1) * 0.55 : 1.6) : 0;
-    this.leds.forEach(led => { led.emissive.copy(color); led.emissiveIntensity = intensity; led.color.set(this.powered ? color : '#bdc6c8'); });
+    if (this.rgbMode === 'rgb' || this.rgbMode === 'rainbow') color.setHSL(reduced ? 0.35 : (this.time * 0.08) % 1, 0.95, 0.5);
+    const intensity = this.powered ? (this.rgbMode === 'breathe' && !reduced ? 0.2 + (Math.sin(this.time * 2) + 1) * 0.6 : 1.25) : 0;
+    this.leds.forEach((led, index) => {
+      const ledColor = color.clone();
+      if (this.rgbMode === 'rainbow') ledColor.offsetHSL(index / Math.max(this.leds.length, 1), 0, 0);
+      led.emissive.copy(ledColor);
+      led.emissiveIntensity = intensity;
+      led.color.set(this.powered ? ledColor : '#bdc6c8');
+      if (this.powered) led.color.multiplyScalar(0.1);
+      led.toneMapped = !this.powered;
+    });
     this.rgbLight.color.copy(color);
     this.rgbLight.intensity = this.leds.length ? intensity * 1.6 : 0;
     this.controls.update();

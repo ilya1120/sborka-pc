@@ -132,7 +132,7 @@ nav {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 .text-button {
@@ -162,7 +162,7 @@ main {
   margin-bottom: 30px;
 }
 .eyebrow {
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 1.8px;
   color: #8d9b93;
@@ -188,7 +188,7 @@ h1 > span {
   color: #788b80;
 }
 .page-heading p {
-  font-size: 12px;
+  font-size: 13px;
   color: #8f9c96;
   margin-top: 14px;
 }
@@ -237,7 +237,7 @@ h1 > span {
 .stage-label {
   display: flex;
   gap: 9px;
-  font-size: 11px;
+  font-size: 13px;
   align-items: center;
   color: #c4cec8;
 }
@@ -248,7 +248,7 @@ h1 > span {
   border-radius: 50%;
 }
 .power-label {
-  font-size: 10px;
+  font-size: 13px;
   color: #84958c;
 }
 .power-label.on {
@@ -292,7 +292,7 @@ h1 > span {
   gap: 15px;
 }
 .gesture-hint {
-  font-size: 9px;
+  font-size: 13px;
   color: #8d9f95;
   max-width: 220px;
   line-height: 1.8;
@@ -310,7 +310,7 @@ h1 > span {
   background: #192620c9;
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 13px;
   color: #d2ded6;
   white-space: nowrap;
 }
@@ -336,7 +336,7 @@ h1 > span {
 .lighting-title {
   display: flex;
   align-items: center;
-  font-size: 10px;
+  font-size: 13px;
   gap: 8px;
   color: #b5c4bb;
 }
@@ -366,7 +366,7 @@ h1 > span {
   height: 17px;
   border: 1px solid #607467;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 13px;
   display: grid;
   place-items: center;
   color: #a6b9aa;
@@ -384,7 +384,7 @@ h1 > span {
 .lighting-bar select {
   margin-left: auto;
   width: 110px;
-  font-size: 10px;
+  font-size: 13px;
   border: 0;
   background: transparent;
   color: #b6c5bb;
@@ -415,11 +415,11 @@ h1 > span {
   white-space: nowrap;
 }
 .build-heading > .eyebrow {
-  font-size: 8px;
+  font-size: 13px;
 }
 .build-heading > span {
   color: #728379;
-  font-size: 11px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 #parts-list {
@@ -467,11 +467,11 @@ h1 > span {
   gap: 5px;
 }
 .part-category {
-  font-size: 8px;
+  font-size: 13px;
   color: #839489;
 }
 .part-name {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 500;
   max-width: 240px;
   overflow: hidden;
@@ -480,14 +480,14 @@ h1 > span {
   color: #dae2dc;
 }
 .part-price {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
 .part-price small {
-  font-size: 9px;
+  font-size: 13px;
   color: #829187;
   font-weight: 400;
 }
@@ -534,13 +534,13 @@ h1 > span {
   height: 17px;
 }
 .compatibility > span {
-  font-size: 10px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 .compatibility small {
-  font-size: 8px;
+  font-size: 13px;
   color: #82978b;
 }
 .compatibility > .icon:last-child {
@@ -563,7 +563,7 @@ h1 > span {
   gap: 8px;
 }
 .build-total > div > span {
-  font-size: 11px;
+  font-size: 13px;
   color: #a6b4aa;
 }
 .build-total strong {
@@ -578,7 +578,7 @@ h1 > span {
 }
 .build-total small {
   grid-column: 1/-1;
-  font-size: 8px;
+  font-size: 13px;
   line-height: 1.6;
   color: #92a298;
 }
@@ -592,7 +592,7 @@ h1 > span {
   border-radius: 7px;
   padding: 14px;
   color: #173224;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   margin-top: 16px;
 }
@@ -622,7 +622,7 @@ h1 > span {
   text-align: left;
 }
 .component-strip > button > span:last-of-type {
-  font-size: 10px;
+  font-size: 13px;
 }
 .component-strip > button:hover {
   border-color: #77ad8b;
@@ -651,7 +651,7 @@ footer {
   align-items: center;
   justify-content: space-between;
   color: #667c6b;
-  font-size: 9px;
+  font-size: 13px;
   gap: 14px;
 }
 .footer-separator {
@@ -659,7 +659,7 @@ footer {
 }
 .footer-link {
   color: #9dae9f;
-  font-size: 9px;
+  font-size: 13px;
 }
 #connection-label {
   margin-left: auto;
@@ -704,7 +704,7 @@ dialog.wide-panel {
   margin: 10px 0;
 }
 .panel-heading p {
-  font-size: 12px;
+  font-size: 13px;
   color: #92a296;
   line-height: 1.7;
 }
@@ -752,10 +752,10 @@ textarea {
   border: 0;
   background: none;
   width: 100%;
-  font-size: 12px;
+  font-size: 13px;
 }
 .catalog-toolbar select {
-  font-size: 11px;
+  font-size: 13px;
   max-width: 180px;
 }
 .category-tabs {
@@ -774,7 +774,7 @@ textarea {
   border-radius: 6px;
   color: #97ad9e;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 13px;
 }
 .category-tabs > button.selected {
   background: #a4f5c71a;
@@ -791,7 +791,7 @@ textarea {
   align-items: center;
   padding: 12px 0 18px;
   color: #94ac9a;
-  font-size: 10px;
+  font-size: 13px;
 }
 .catalog-filters label {
   display: flex;
@@ -838,11 +838,11 @@ input[type="checkbox"] {
   right: 10px;
   bottom: 10px;
   letter-spacing: 1.5px;
-  font-size: 8px;
+  font-size: 13px;
   color: #b6d7c0;
 }
 .product-brand {
-  font-size: 9px;
+  font-size: 13px;
   color: #a4b6a8;
   letter-spacing: 0.8px;
   margin-top: 17px;
@@ -856,7 +856,7 @@ input[type="checkbox"] {
   margin-top: 5px;
 }
 .product-summary {
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.8;
   color: #98ae9f;
   margin: 8px 0 12px;
@@ -866,7 +866,7 @@ input[type="checkbox"] {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  font-size: 10px;
+  font-size: 13px;
   color: #b7d8c2;
   padding: 0;
   align-self: flex-start;
@@ -894,7 +894,7 @@ input[type="checkbox"] {
   font-weight: 500;
 }
 .product-bottom small {
-  font-size: 8px;
+  font-size: 13px;
   color: #91a999;
 }
 .choose-button {
@@ -906,7 +906,7 @@ input[type="checkbox"] {
   color: #173d25;
   padding: 9px 11px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 13px;
 }
 .choose-button .icon {
   width: 14px;
@@ -931,7 +931,7 @@ input[type="checkbox"] {
   margin: 16px 0;
 }
 .muted {
-  font-size: 11px;
+  font-size: 13px;
   color: #91a797;
   line-height: 1.9;
   margin: 16px 0;
@@ -945,7 +945,7 @@ input[type="checkbox"] {
   gap: 20px;
   border-bottom: 1px solid #34473a;
   padding: 12px 0;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.6;
 }
 .spec-list dt {
@@ -974,7 +974,7 @@ input[type="checkbox"] {
   font-size: 24px;
 }
 .price-box p {
-  font-size: 11px;
+  font-size: 13px;
   color: #a9bdaf;
   line-height: 1.8;
   margin: 8px 0 12px;
@@ -988,7 +988,7 @@ input[type="checkbox"] {
   width: 100%;
   border-radius: 7px;
   padding: 14px;
-  font-size: 12px;
+  font-size: 13px;
   margin-top: 12px;
 }
 .primary-button {
@@ -1008,7 +1008,7 @@ input[type="checkbox"] {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  font-size: 11px;
+  font-size: 13px;
   color: #adc7b5;
   margin-bottom: 18px;
 }
@@ -1037,7 +1037,7 @@ input[type="checkbox"] {
   gap: 8px;
   align-items: center;
   color: #abc0b1;
-  font-size: 11px;
+  font-size: 13px;
 }
 .editor-subheading {
   font-size: 16px;
@@ -1063,7 +1063,7 @@ input[type="checkbox"] {
 }
 .issue {
   color: #e9bc83;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.8;
   padding: 16px 0;
   border-bottom: 1px solid #42543f;
@@ -1073,7 +1073,7 @@ input[type="checkbox"] {
   overflow-wrap: anywhere;
 }
 .role-label {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--accent);
   margin: 12px 0 25px;
 }
@@ -1092,13 +1092,13 @@ input[type="checkbox"] {
   font-size: 16px;
 }
 .saved-card p {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   margin: 14px 0;
   color: #a9c0b0;
 }
 .saved-card small {
-  font-size: 9px;
+  font-size: 13px;
   color: #87a090;
 }
 .saved-actions {
@@ -1120,11 +1120,11 @@ input[type="checkbox"] {
   margin-right: auto;
 }
 .admin-row strong {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 .admin-row small {
-  font-size: 10px;
+  font-size: 13px;
   color: #9cb1a3;
 }
 .admin-row .tool-button {
@@ -1141,7 +1141,7 @@ input[type="checkbox"] {
   border-radius: 9px;
   background: #d2f7df;
   color: #193c27;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
   box-shadow: 0 10px 50px #0007;
   opacity: 0;
@@ -1157,7 +1157,7 @@ input[type="checkbox"] {
 #auth-status,
 #save-status,
 #editor-status {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.9;
   color: #bed7c7;
   margin-top: 16px;
@@ -1170,10 +1170,10 @@ input[type="checkbox"] {
     min-height: 62px;
   }
   .part-name {
-    font-size: 12px;
+    font-size: 13px;
   }
   .part-category {
-    font-size: 9px;
+    font-size: 13px;
   }
   .part-price {
     font-size: 13px;
@@ -1220,7 +1220,7 @@ input[type="checkbox"] {
     padding: 16px 14px;
   }
   .lighting-title {
-    font-size: 9px;
+    font-size: 13px;
   }
   .lighting-title .icon {
     display: none;
@@ -1266,13 +1266,13 @@ input[type="checkbox"] {
   }
   .gesture-hint {
     max-width: 140px;
-    font-size: 8px;
+    font-size: 13px;
   }
   .power-button {
     padding: 11px 12px;
   }
   .page-heading p {
-    font-size: 11px;
+    font-size: 13px;
   }
 }
 @media (max-width: 850px) {
@@ -1304,10 +1304,10 @@ input[type="checkbox"] {
   }
   .part-name {
     max-width: none;
-    font-size: 12px;
+    font-size: 13px;
   }
   .part-category {
-    font-size: 10px;
+    font-size: 13px;
   }
   .part-price {
     font-size: 13px;
@@ -1327,13 +1327,13 @@ input[type="checkbox"] {
     height: 40px;
   }
   .compatibility > span {
-    font-size: 12px;
+    font-size: 13px;
   }
   .compatibility small {
-    font-size: 10px;
+    font-size: 13px;
   }
   .build-total small {
-    font-size: 10px;
+    font-size: 13px;
   }
   .build-total strong {
     font-size: 32px;
@@ -1355,7 +1355,7 @@ input[type="checkbox"] {
     padding: 16px 24px;
   }
   .lighting-title {
-    font-size: 11px;
+    font-size: 13px;
   }
   .swatches {
     gap: 10px;
@@ -1365,12 +1365,12 @@ input[type="checkbox"] {
     height: 16px;
   }
   .lighting-bar select {
-    font-size: 11px;
+    font-size: 13px;
     width: 120px;
   }
   .gesture-hint {
     max-width: none;
-    font-size: 10px;
+    font-size: 13px;
   }
   .stage-bottom {
     padding: 20px 24px;
@@ -1389,11 +1389,11 @@ input[type="checkbox"] {
     grid-template-columns: repeat(2, 1fr);
   }
   .reset-build {
-    font-size: 10px;
+    font-size: 13px;
   }
   #connection-label {
     margin-right: 0;
-    font-size: 8px;
+    font-size: 13px;
   }
 }
 @media (max-width: 520px) {
@@ -1411,7 +1411,7 @@ input[type="checkbox"] {
     height: 22px;
   }
   .nav-link {
-    font-size: 10px;
+    font-size: 13px;
   }
   nav {
     gap: 14px;
@@ -1436,14 +1436,14 @@ input[type="checkbox"] {
     letter-spacing: -1.8px;
   }
   .eyebrow {
-    font-size: 8px;
+    font-size: 13px;
     letter-spacing: 1.3px;
   }
   .page-heading {
     margin-bottom: 22px;
   }
   .page-heading p {
-    font-size: 10px;
+    font-size: 13px;
     max-width: 280px;
     margin-top: 10px;
   }
@@ -1458,10 +1458,10 @@ input[type="checkbox"] {
     padding: 18px;
   }
   .stage-label {
-    font-size: 10px;
+    font-size: 13px;
   }
   .power-label {
-    font-size: 9px;
+    font-size: 13px;
   }
   .scene-tools {
     right: 15px;
@@ -1471,11 +1471,11 @@ input[type="checkbox"] {
     padding: 14px;
   }
   .gesture-hint {
-    font-size: 8px;
+    font-size: 13px;
     max-width: 140px;
   }
   .power-button {
-    font-size: 10px;
+    font-size: 13px;
     padding: 11px;
     gap: 5px;
   }
@@ -1488,7 +1488,7 @@ input[type="checkbox"] {
     gap: 12px;
   }
   .lighting-title {
-    font-size: 9px;
+    font-size: 13px;
   }
   .swatches {
     gap: 5px;
@@ -1498,18 +1498,18 @@ input[type="checkbox"] {
     width: 14px;
   }
   .lighting-bar select {
-    font-size: 9px;
+    font-size: 13px;
     width: 90px;
   }
   .part-name {
-    font-size: 10px;
+    font-size: 13px;
     max-width: 205px;
   }
   .part-price {
-    font-size: 11px;
+    font-size: 13px;
   }
   .part-category {
-    font-size: 9px;
+    font-size: 13px;
   }
   .part-select {
     gap: 10px;
@@ -1530,7 +1530,7 @@ input[type="checkbox"] {
     text-align: center;
   }
   .component-strip > button > span:last-of-type {
-    font-size: 9px;
+    font-size: 13px;
   }
   footer {
     flex-wrap: wrap;
@@ -1565,7 +1565,7 @@ input[type="checkbox"] {
   .catalog-toolbar select {
     max-width: none;
     width: 100%;
-    font-size: 11px;
+    font-size: 13px;
     padding: 9px;
   }
   .category-tabs {
@@ -1582,11 +1582,11 @@ input[type="checkbox"] {
     height: 72px;
   }
   .product-card h3 {
-    font-size: 11px;
+    font-size: 13px;
     min-height: 40px;
   }
   .product-summary {
-    font-size: 8px;
+    font-size: 13px;
   }
   .product-bottom {
     flex-direction: column;
@@ -1603,13 +1603,13 @@ input[type="checkbox"] {
     width: 100%;
   }
   .product-bottom small {
-    font-size: 8px;
+    font-size: 13px;
   }
   .details-link {
-    font-size: 9px;
+    font-size: 13px;
   }
   .catalog-filters {
-    font-size: 9px;
+    font-size: 13px;
   }
   .admin-row {
     gap: 8px;
@@ -1618,10 +1618,10 @@ input[type="checkbox"] {
     display: none;
   }
   .admin-row strong {
-    font-size: 11px;
+    font-size: 13px;
   }
   .admin-row small {
-    font-size: 9px;
+    font-size: 13px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1629,4 +1629,107 @@ input[type="checkbox"] {
     scroll-behavior: auto !important;
     transition: none !important;
   }
+}
+
+/* Читаемые подписи и размеры элементов управления на всех экранах. */
+.workspace { align-items: start; grid-template-columns: minmax(0, 1.4fr) minmax(420px, 1fr); }
+.visual-card { position: sticky; top: 20px; height: 760px; min-height: 660px; }
+#scene { bottom: 116px; }
+.part-row { min-height: 77px; }
+.part-select { gap: 12px; padding: 14px 27px 14px 12px; }
+.part-thumb { width: 43px; height: 43px; }
+.part-category { color: #a1b4a8; line-height: 1.4; }
+.part-name { white-space: normal; font-size: 14px; line-height: 1.5; max-width: none; overflow-wrap: anywhere; }
+.part-price { font-size: 15px; }
+.part-price small { font-size: 14px; }
+.remove-part { opacity: 1; top: 5px; right: 1px; background: transparent; }
+.build-heading { padding: 24px; }
+.build-heading h2 { font-size: 20px; }
+.build-total small, .compatibility small { line-height: 1.6; color: #a2b5a8; }
+.compatibility { padding: 18px 24px; }
+.save-button, .primary-button, .secondary-button { font-size: 15px; min-height: 48px; }
+.gesture-hint { max-width: 260px; line-height: 1.65; }
+.power-button { min-height: 44px; font-size: 14px; }
+.lighting-bar { display: grid; grid-template-columns: 1fr auto; gap: 15px; min-height: 116px; padding: 17px 22px; overflow: visible; }
+.lighting-title { font-size: 14px; }
+.swatches { grid-column: 1 / -1; grid-row: 2; gap: 12px; flex-wrap: wrap; }
+.swatch { width: 25px; height: 25px; border-width: 3px; outline-offset: 2px; }
+.custom-color { width: 25px; height: 25px; font-size: 19px; }
+.lighting-mode { position: relative; grid-column: 2; grid-row: 1; z-index: 5; }
+.lighting-mode summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 12px; min-width: 170px; border: 1px solid #435b4c; border-radius: 8px; background: #26382c; color: #dbeee2; font-size: 13px; cursor: pointer; list-style: none; }
+.lighting-mode summary::-webkit-details-marker { display: none; }
+.lighting-mode summary > .icon { width: 14px; height: 14px; transform: rotate(90deg); }
+.lighting-mode[open] summary { border-color: var(--accent); }
+.lighting-menu { position: absolute; bottom: calc(100% + 10px); right: 0; width: 254px; padding: 7px; border: 1px solid #54745f; border-radius: 10px; background: #1e2d24; box-shadow: 0 12px 40px #0009; }
+.lighting-menu > button { display: flex; align-items: center; gap: 11px; padding: 13px 11px; width: 100%; text-align: left; font-size: 14px; border-radius: 6px; color: #d6e9dc; }
+.lighting-menu > button:hover, .lighting-menu > button[aria-pressed="true"] { background: #3a5642; color: #bdffd7; }
+.lighting-menu .icon { width: 18px; height: 18px; }
+.rainbow-indicator { width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; background: conic-gradient(#ff3838, #ffe33d, #44ee70, #34d9ff, #4777ff, #b65dff, #ff3838); }
+.product-art { height: 190px; padding: 14px; background: #edf0ed; }
+.product-art img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; z-index: 1; mix-blend-mode: multiply; }
+.photo-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: #58665d; }
+.product-art:has(img) .photo-fallback { visibility: hidden; }
+.photo-fallback .icon { width: 80px; height: 80px; stroke-width: 1; }
+.product-art.photo-unavailable img { display: none; }
+.product-art.photo-unavailable .photo-fallback { visibility: visible; }
+.photo-missing { position: absolute; bottom: 15px; font-size: 13px; color: #506052; }
+.product-art .rgb-tag { z-index: 2; background: #243b2b; color: #b7ffd1; border-radius: 4px; padding: 5px 7px; font-size: 12px; }
+.product-card h3 { font-size: 16px; min-height: 52px; }
+.product-summary { font-size: 13px; color: #adc1b3; min-height: 66px; }
+.product-brand { font-size: 13px; }
+.product-bottom { flex-wrap: wrap; gap: 14px; }
+.product-bottom strong { font-size: 20px; }
+.choose-button { font-size: 14px; min-height: 42px; }
+.details-link { font-size: 14px; }
+.large-art { height: 280px; }
+.spec-list > div { font-size: 14px; }
+.description { font-size: 15px; }
+.muted { font-size: 14px; }
+.field-label { font-size: 14px; }
+.field-label input, .field-label textarea, .field-label select { font-size: 16px; }
+.catalog-toolbar select, .search-field input { font-size: 14px; }
+.category-tabs > button { font-size: 14px; padding: 12px 14px; }
+.catalog-filters { font-size: 13px; }
+.component-strip > button > span:last-of-type { font-size: 13px; }
+.admin-row strong { font-size: 14px; }
+.admin-row small { font-size: 13px; }
+.saved-card p { font-size: 14px; }
+.text-button, .account-button { font-size: 14px; }
+footer { flex-wrap: wrap; line-height: 1.7; padding: 18px 0; }
+@media (max-width: 1100px) {
+  .workspace { grid-template-columns: minmax(0, 1.2fr) minmax(390px, 1fr); }
+  .lighting-bar { padding: 16px; gap: 12px; }
+  .swatches { gap: 9px; }
+  .swatch, .custom-color { width: 23px; height: 23px; }
+  .gesture-hint { max-width: 170px; }
+  #product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .visual-card { position: relative; top: auto; height: 650px; min-height: 0; }
+  .gesture-hint { max-width: 280px; }
+}
+@media (max-width: 520px) {
+  .header { gap: 13px; }
+  .nav-link { font-size: 13px; }
+  .visual-card { height: 560px; }
+  .lighting-bar { padding: 14px; }
+  .lighting-title { font-size: 13px; }
+  .lighting-mode summary { min-width: 160px; font-size: 13px; }
+  .swatches { gap: 8px; }
+  .gesture-hint { max-width: 160px; font-size: 12px; }
+  .power-button { font-size: 13px; }
+  .part-select { padding-left: 4px; gap: 9px; }
+  .part-thumb { width: 33px; height: 38px; }
+  .part-name { font-size: 14px; }
+  .part-category { font-size: 12px; }
+  .part-price { font-size: 14px; }
+  .product-art { height: 155px; padding: 10px; }
+  .product-card h3 { font-size: 14px; }
+  .product-bottom strong { font-size: 18px; }
+  .product-summary { min-height: 0; }
+  .large-art { height: 250px; }
+  .category-tabs > button { font-size: 13px; }
+  .catalog-filters { gap: 12px; }
+  #connection-label { font-size: 12px; }
 }
