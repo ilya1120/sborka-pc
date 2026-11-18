@@ -32,7 +32,7 @@ function dispose(view) {
   });
 }
 
-test('Каждая из 24 деталей строится без повреждённой геометрии', () => withCanvas(() => {
+test('Каждая из 56 деталей строится без повреждённой геометрии', () => withCanvas(() => {
   for (const product of initialProducts) {
     const view = createView();
     buildDetailedPC(view, { ...defaults(), [product.category]: product });
