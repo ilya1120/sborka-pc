@@ -1,3 +1,5 @@
+import { additionalProducts } from './catalog-expansion.js';
+
 export const categories = [
   { id: 'cpu', name: 'Процессор', short: 'CPU', icon: 'cpu' },
   { id: 'motherboard', name: 'Материнская плата', short: 'Плата', icon: 'board' },
@@ -44,6 +46,7 @@ export const initialProducts = [
   product('cooler-ag400', 'cooler', 'DeepCool AG400 ARGB', 'DeepCool', 2990, 'Башенный кулер с четырьмя тепловыми трубками и ARGB-вентилятором.', { sockets: ['AM5', 'LGA1700'], height: 150, cooling_watts: 180, tdp: 4 }, { color: '#41464c', rgb: true }),
   product('cooler-ag400-white', 'cooler', 'DeepCool AG400 WH ARGB', 'DeepCool', 3490, 'Белая версия башенного кулера с адресной подсветкой.', { sockets: ['AM5', 'LGA1700'], height: 150, cooling_watts: 180, tdp: 4 }, { color: '#e6e8eb', rgb: true }),
   product('cooler-ak400', 'cooler', 'DeepCool AK400', 'DeepCool', 2990, 'Башенный кулер с алюминиевым радиатором и чёрным вентилятором.', { sockets: ['AM5', 'LGA1700'], height: 155, cooling_watts: 180, tdp: 4 }, { color: '#30363a' }),
+  ...additionalProducts,
 ];
 
 export const defaultBuild = Object.fromEntries(categories.map(category => [
@@ -61,5 +64,7 @@ export const specLabels = {
   certificate: 'Сертификат', forms: 'Форматы плат', max_gpu: 'Длина GPU до, мм',
   max_cooler: 'Высота кулера до, мм', psu_form: 'Формат БП',
   hdd_bays: 'Места для HDD', sockets: 'Сокеты', height: 'Высота, мм',
-  cooling_watts: 'Отвод тепла, Вт',
+  cooling_watts: 'Отвод тепла, Вт', width: 'Ширина, мм', depth: 'Глубина, мм',
+  case_fans: 'Вентиляторы в комплекте', front_fans: 'Вентиляторы спереди', rear_fans: 'Вентиляторы сзади',
+  fan_diameter: 'Диаметр вентилятора, мм', heatpipes: 'Тепловые трубки',
 };
