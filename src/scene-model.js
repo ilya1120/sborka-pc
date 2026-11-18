@@ -12,10 +12,11 @@ export function buildDetailedPC(view, parts) {
   const gold = surface('#bb9654', 0.75, 0.3);
   const pcb = surface('#202a29', 0.2, 0.75);
   const copper = surface('#9b623d', 0.75, 0.3);
-  const isAP201 = parts.case?.id === 'case-ap201';
-  const depth = isAP201 ? 4.6 : 4.05;
-  const height = isAP201 ? 3.5 : 4.25;
-  const breadth = isAP201 ? 2.05 : 2.1;
+  const isAP201 = /ap201/.test(parts.case?.id || '');
+  const dimension = (value, fallback) => Number.isFinite(Number(value)) && Number(value) >= 150 && Number(value) <= 650 ? Number(value) / 100 : fallback;
+  const depth = dimension(parts.case?.specs.depth, isAP201 ? 4.6 : 4.05);
+  const height = dimension(parts.case?.specs.height, isAP201 ? 3.5 : 4.25);
+  const breadth = dimension(parts.case?.specs.width, isAP201 ? 2.05 : 2.1);
   const rear = -depth / 2;
   const front = depth / 2;
   const base = -2.12;
@@ -75,8 +76,9 @@ export function buildDetailedPC(view, parts) {
     grille(group, depth - 0.22, breadth - 0.16, [0, top - 0.012, 0], [-Math.PI / 2, 0, 0]);
     grille(group, breadth - 0.14, height - 0.12, [front + 0.005, base + height / 2, 0], [0, Math.PI / 2, 0]);
     // У AIR 100 три передних и один задний вентилятор; AP201 — задний.
-    if (!isAP201) for (let i = 0; i < 3; i++) view.fan(group, [front - 0.16, top - 0.69 - i * 1.23, 0], 1.18, parts.case.appearance.rgb, parts.case.appearance.color, Math.PI / 2);
-    view.fan(group, [rear + 0.13, top - 0.76, 0], 1.16, parts.case.appearance.rgb, parts.case.appearance.color, -Math.PI / 2);
+    const frontFans = Math.min(3, Math.max(0, parts.case.specs.front_fans ?? (isAP201 ? 0 : 3)));
+    for (let i = 0; i < frontFans; i++) view.fan(group, [front - 0.16, top - (frontFans === 2 ? 0.9 : 0.69) - i * 1.23, 0], 1.18, parts.case.appearance.rgb, parts.case.appearance.color, Math.PI / 2);
+    if ((parts.case.specs.rear_fans ?? 1) > 0) view.fan(group, [rear + 0.13, top - 0.76, 0], 1.16, parts.case.appearance.rgb, parts.case.appearance.color, -Math.PI / 2);
     grille(group, 1.22, 1.22, [rear - 0.008, top - 0.76, 0], [0, Math.PI / 2, 0]);
     // Задняя панель, посадочные места PCIe и разъёмы передней панели.
     view.box(group, [0.05, 0.65, breadth - 0.1], [rear, base + 0.36, 0], shell);
@@ -94,7 +96,7 @@ export function buildDetailedPC(view, parts) {
       view.box(group, [depth - 0.12, 0.035, breadth - 0.1], [0, base + 0.88, 0], shell);
       const shroud = view.box(group, [depth - 0.12, 0.83, 0.03], [0, base + 0.44, breadth / 2 - 0.1], shell);
       view.inspectionPanels.push(shroud);
-      view.label(group, 'MONTECH', 0.68, 0.12, [front - 0.65, base + 0.39, breadth / 2 - 0.078]);
+      view.label(group, parts.case.brand.toUpperCase(), 0.68, 0.12, [front - 0.65, base + 0.39, breadth / 2 - 0.078]);
     }
     view.glass = isAP201
       ? grille(group, depth - 0.1, height - 0.1, [0, base + height / 2, breadth / 2], [0, 0, 0])
@@ -159,22 +161,27 @@ export function buildDetailedPC(view, parts) {
     const finish = surface(parts.cooler.appearance.color, 0.65, 0.38);
     const coolerHeight = Math.min(Math.max(Number(parts.cooler.specs.height) || 150, 80), 200) / 100;
     const frontZ = boardZ + coolerHeight;
+    const fanSize = Math.min(1.4, Math.max(0.8, (Number(parts.cooler.specs.fan_diameter) || 120) / 100));
+    const towerWidth = fanSize * 0.94;
+    const pipes = Math.min(8, Math.max(2, Number(parts.cooler.specs.heatpipes) || 4));
     // Башня растёт перпендикулярно плате; пакеты алюминиевых пластин и U-трубки.
-    boxes(group, [1.12, 1.1, 0.012], Array.from({ length: 42 }, (_, i) => [cpuX, cpuY, boardZ + 0.25 + i * (coolerHeight - 0.3) / 42]), silver);
-    round(group, [1.12, 1.1, 0.045], [cpuX, cpuY, frontZ], finish);
-    for (const x of [-0.4, -0.13, 0.13, 0.4]) {
-      tube(group, [[cpuX + x, cpuY - 0.35, frontZ + 0.02], [cpuX + x, cpuY - 0.35, boardZ + 0.23], [cpuX + x, cpuY, boardZ + 0.17], [cpuX + x, cpuY + 0.35, boardZ + 0.23], [cpuX + x, cpuY + 0.35, frontZ + 0.02]], 0.028, parts.cooler.id.includes('white') ? finish : copper);
+    boxes(group, [towerWidth, towerWidth * 0.98, 0.012], Array.from({ length: 42 }, (_, i) => [cpuX, cpuY, boardZ + 0.25 + i * (coolerHeight - 0.3) / 42]), silver);
+    round(group, [towerWidth, towerWidth * 0.98, 0.045], [cpuX, cpuY, frontZ], finish);
+    for (const x of Array.from({ length: pipes }, (_, i) => (i / (pipes - 1) - 0.5) * towerWidth * 0.72)) {
+      const pipeY = towerWidth * 0.31;
+      tube(group, [[cpuX + x, cpuY - pipeY, frontZ + 0.02], [cpuX + x, cpuY - pipeY, boardZ + 0.23], [cpuX + x, cpuY, boardZ + 0.17], [cpuX + x, cpuY + pipeY, boardZ + 0.23], [cpuX + x, cpuY + pipeY, frontZ + 0.02]], 0.028, parts.cooler.id.includes('white') ? finish : copper);
     }
-    view.fan(group, [cpuX + 0.66, cpuY, boardZ + coolerHeight / 2 + 0.1], 1.16, parts.cooler.appearance.rgb, parts.cooler.appearance.color, Math.PI / 2);
-    view.label(group, 'DEEPCOOL', 0.62, 0.1, [cpuX, cpuY, frontZ + 0.028]);
-    for (const x of [-0.54, 0.54]) for (const y of [-0.5, 0.5]) screw(group, cpuX + x, cpuY + y, frontZ + 0.026, 0.018);
+    view.fan(group, [cpuX + towerWidth / 2 + 0.1, cpuY, boardZ + coolerHeight / 2 + 0.1], fanSize * 0.97, parts.cooler.appearance.rgb, parts.cooler.appearance.color, Math.PI / 2);
+    view.label(group, parts.cooler.brand.toUpperCase(), towerWidth * 0.6, 0.1, [cpuX, cpuY, frontZ + 0.028]);
+    for (const x of [-towerWidth * 0.46, towerWidth * 0.46]) for (const y of [-towerWidth * 0.43, towerWidth * 0.43]) screw(group, cpuX + x, cpuY + y, frontZ + 0.026, 0.018);
   }
   if (parts.ram) {
     const group = view.component('ram');
     const finish = surface(parts.ram.appearance.color, 0.5, 0.45);
     const sticks = Math.min(Math.max(Number(parts.ram.specs.sticks) || 1, 1), 4);
     for (let i = 0; i < sticks; i++) {
-      const slot = sticks <= 2 ? 1 + i * 2 : i;
+      const slots = parts.motherboard?.specs.ram_slots || 4;
+      const slot = sticks <= 2 && slots >= 4 ? 1 + i * 2 : i;
       const x = boardX + 0.42 + slot * 0.16;
       round(group, [0.07, 1.34, 0.28], [x, cpuY - 0.04, boardZ + 0.2], finish, 0.012);
       view.box(group, [0.04, 1.25, 0.03], [x, cpuY - 0.04, boardZ + 0.065], gold);
@@ -210,7 +217,7 @@ export function buildDetailedPC(view, parts) {
     if (parts.storage.specs.interface === 'SATA') {
       round(group, [1.02, 0.24, 1.47], [front - 0.73, base + 0.23, 0.03], silver);
       view.box(group, [0.8, 0.015, 0.9], [front - 0.73, base + 0.36, 0], surface('#e4e8ec'));
-      view.label(group, 'WD BLUE · 2 TB', 0.7, 0.1, [front - 0.73, base + 0.23, 0.77], '#275b9d');
+      view.label(group, `${parts.storage.brand.toUpperCase()} · ${parts.storage.specs.capacity / 1000} TB`, 0.78, 0.1, [front - 0.73, base + 0.23, 0.77], parts.storage.brand === 'Seagate' ? '#28703c' : '#275b9d');
     } else {
       const x = boardX - 0.1, y = boardY - 0.9;
       round(group, [0.8, 0.22, 0.025], [x, y, boardZ + 0.06], surface(parts.storage.appearance.color), 0.008);
