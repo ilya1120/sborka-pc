@@ -5,6 +5,7 @@ import { database, loadCatalog, getProfile, explainError } from './api.js';
 import { PCScene } from './scene.js';
 import { productImages } from './product-images.js';
 import { lightingColors, lightingModes, validLightingMode } from './lighting.js';
+import { storeLinksMarkup } from './stores.js';
 
 const paths = {
   cpu: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v4m6-4v4M9 19v4m6-4v4M1 9h4m-4 6h4m14-6h4m-4 6h4"/>',
@@ -39,6 +40,7 @@ let powered = false;
 let rgbColor = '#69f2b2';
 let rgbMode = 'static';
 let sideOpen = true;
+let inspectionOpen = false;
 let build = { ...defaultBuild };
 let buildName = 'Моя первая сборка';
 let currentBuildId = null;
@@ -71,7 +73,7 @@ app.innerHTML = `
         <div class="stage-top"><span class="stage-label"><span class="live-dot"></span>3D-просмотр</span><span class="power-label" id="power-label">Питание выключено</span></div>
         <div id="scene"></div>
         <div class="scene-fallback" id="scene-fallback" hidden>Браузер не смог запустить 3D. Каталог и сборка доступны в списке справа.</div>
-        <div class="scene-tools"><button class="tool-button" id="camera-reset" title="Вернуть исходный ракурс" aria-label="Вернуть исходный ракурс">${icon('reset')}</button><button class="tool-button" id="side-toggle" title="Закрыть боковую стенку" aria-label="Закрыть боковую стенку" aria-pressed="false">${icon('layers')}</button></div>
+        <div class="scene-tools"><button class="tool-button" id="camera-reset" title="Вернуть исходный ракурс" aria-label="Вернуть исходный ракурс">${icon('reset')}</button><button class="tool-button" id="side-toggle" title="Закрыть боковую стенку" aria-label="Закрыть боковую стенку" aria-pressed="false">${icon('layers')}</button><button class="inspection-button" id="inspection-toggle" title="Разнести детали для осмотра" aria-pressed="false">${icon('layers')}<span>Разнести детали</span></button></div>
         <div class="stage-bottom"><span class="gesture-hint">Перетаскивай, чтобы вращать <span>·</span> Прокручивай, чтобы приблизить</span><button class="power-button" id="power-toggle" aria-pressed="false">${icon('power')}<span>Включить ПК</span></button></div>
         <div class="lighting-bar">
           <div class="lighting-title">${icon('fan')} Подсветка</div>
@@ -199,7 +201,7 @@ function showProduct(id) {
   if (!item) return;
   const body = openPanel(item.name, categoryById(item.category).name);
   const source = sourceURL(item.source_url);
-  body.innerHTML = `${productPhoto(item, 'large-art')}<p class="description">${escape(item.description)}</p><dl class="spec-list">${Object.entries(item.specs).map(([key, value]) => `<div><dt>${escape(specLabels[key] || key)}</dt><dd>${escape(Array.isArray(value) ? value.join(', ') : value)}</dd></div>`).join('')}<div><dt>Цвет модели</dt><dd><span class="color-chip" style="background:${escape(item.appearance.color)}"></span>${escape(item.appearance.color)}</dd></div><div><dt>Подсветка</dt><dd>${item.appearance.rgb ? 'Есть' : 'Нет'}</dd></div></dl><div class="price-box"><strong>${money(item.price)} ₽</strong><p>${item.price_source === 'demo' ? 'Примерная учебная цена. Автоматическое обновление из DNS пока не подключено.' : `Источник: ${escape(item.price_source)}. Обновлено: ${item.price_updated_at ? new Date(item.price_updated_at).toLocaleString('ru-RU') : 'дата не указана'}.`}</p>${source ? `<a class="details-link" href="${escape(source)}" target="_blank" rel="noopener noreferrer">${item.price_source === 'demo' ? 'Найти в DNS' : 'Открыть источник'} ${icon('external')}</a>` : ''}</div><p class="muted">3D-модель схематичная. Геометрия и оттенки могут отличаться от реального товара. Перед покупкой сверяйте данные с производителем.</p><button class="primary-button" id="detail-choose">${icon('plus')} Добавить в сборку</button><button class="secondary-button" id="back-catalog">Вернуться в каталог</button>`;
+  body.innerHTML = `${productPhoto(item, 'large-art')}<p class="description">${escape(item.description)}</p><dl class="spec-list">${Object.entries(item.specs).map(([key, value]) => `<div><dt>${escape(specLabels[key] || key)}</dt><dd>${escape(Array.isArray(value) ? value.join(', ') : value)}</dd></div>`).join('')}<div><dt>Цвет модели</dt><dd><span class="color-chip" style="background:${escape(item.appearance.color)}"></span>${escape(item.appearance.color)}</dd></div><div><dt>Подсветка</dt><dd>${item.appearance.rgb ? 'Есть' : 'Нет'}</dd></div></dl><div class="price-box"><strong>${money(item.price)} ₽</strong><p>${item.price_source === 'demo' ? 'Примерная учебная цена. Автоматическое обновление из DNS пока не подключено.' : `Источник: ${escape(item.price_source)}. Обновлено: ${item.price_updated_at ? new Date(item.price_updated_at).toLocaleString('ru-RU') : 'дата не указана'}.`}</p>${source ? `<a class="details-link" href="${escape(source)}" target="_blank" rel="noopener noreferrer">${item.price_source === 'demo' ? 'Найти в DNS' : 'Открыть источник'} ${icon('external')}</a>` : ''}</div>${storeLinksMarkup()}<p class="muted">Детализированная параметрическая 3D-модель. Геометрия и оттенки могут отличаться от реального товара. Перед покупкой сверяйте данные с производителем.</p><button class="primary-button" id="detail-choose">${icon('plus')} Добавить в сборку</button><button class="secondary-button" id="back-catalog">Вернуться в каталог</button>`;
   body.querySelector('#detail-choose').onclick = () => { build[item.category] = item.id; renderBuild(); panel.close(); toast('Комплектующее добавлено'); };
   body.querySelector('#back-catalog').onclick = () => showCatalog(item.category);
 }
@@ -391,7 +393,7 @@ function showProductEditor(existing = null) {
   const body = openPanel(existing ? 'Редактировать товар' : 'Новое комплектующее');
   const item = existing || { category: 'cpu', name: '', brand: '', price: 0, description: '', specs: { ...initialProducts[0].specs }, appearance: { color: '#25282c', rgb: false }, source_url: '', active: true };
   const field = (label, name, value, type = 'text', extra = '') => `<label class="field-label">${label}<input type="${type}" name="${name}" value="${escape(value)}" ${extra}/></label>`;
-  body.innerHTML = `<form id="product-form"><label class="field-label">Категория<select name="category" ${existing ? 'disabled' : ''}>${categories.map(category => `<option value="${category.id}" ${category.id === item.category ? 'selected' : ''}>${category.name}</option>`).join('')}</select></label>${field('Название', 'name', item.name, 'text', 'required maxlength="160"')}${field('Производитель', 'brand', item.brand, 'text', 'required maxlength="80"')}${field('Цена, ₽', 'price', item.price, 'number', 'min="0" max="10000000" step="0.01" required')}<label class="field-label">Описание<textarea name="description" maxlength="2000" required>${escape(item.description)}</textarea></label><div class="editor-subheading">Характеристики</div><div id="spec-fields"></div><div class="form-grid">${field('Цвет', 'color', item.appearance.color, 'color')}<label class="checkbox-field"><input type="checkbox" name="rgb" ${item.appearance.rgb ? 'checked' : ''}/> Есть RGB-подсветка</label></div>${field('Фотография товара — прямая ссылка HTTPS', 'image_url', item.appearance.image_url || '', 'url')}${field('Ссылка на товар в магазине', 'source_url', item.source_url || '', 'url')}<p class="muted">Цвет и характеристики управляют схематичной 3D-моделью. После изменения цены источником станет ручное обновление администратора.</p><button class="primary-button" type="submit">Сохранить товар</button><button class="secondary-button" type="button" id="editor-back">Вернуться к каталогу</button><p id="editor-status" role="status"></p></form>`;
+  body.innerHTML = `<form id="product-form"><label class="field-label">Категория<select name="category" ${existing ? 'disabled' : ''}>${categories.map(category => `<option value="${category.id}" ${category.id === item.category ? 'selected' : ''}>${category.name}</option>`).join('')}</select></label>${field('Название', 'name', item.name, 'text', 'required maxlength="160"')}${field('Производитель', 'brand', item.brand, 'text', 'required maxlength="80"')}${field('Цена, ₽', 'price', item.price, 'number', 'min="0" max="10000000" step="0.01" required')}<label class="field-label">Описание<textarea name="description" maxlength="2000" required>${escape(item.description)}</textarea></label><div class="editor-subheading">Характеристики</div><div id="spec-fields"></div><div class="form-grid">${field('Цвет', 'color', item.appearance.color, 'color')}<label class="checkbox-field"><input type="checkbox" name="rgb" ${item.appearance.rgb ? 'checked' : ''}/> Есть RGB-подсветка</label></div>${field('Фотография товара — прямая ссылка HTTPS', 'image_url', item.appearance.image_url || '', 'url')}${field('Ссылка на товар в магазине', 'source_url', item.source_url || '', 'url')}<p class="muted">Цвет и характеристики управляют параметрической 3D-моделью. После изменения цены источником станет ручное обновление администратора.</p><button class="primary-button" type="submit">Сохранить товар</button><button class="secondary-button" type="button" id="editor-back">Вернуться к каталогу</button><p id="editor-status" role="status"></p></form>`;
   const form = body.querySelector('form');
   const renderSpecs = specs => {
     body.querySelector('#spec-fields').innerHTML = Object.entries(specs).map(([key, value]) => field(specLabels[key] || key, `spec_${key}`, Array.isArray(value) ? value.join(', ') : value, typeof value === 'number' ? 'number' : 'text', `required ${typeof value === 'number' ? 'min="0" max="10000000" step="1"' : 'maxlength="160"'}`)).join('');
@@ -455,6 +457,13 @@ document.querySelector('#saved-open').onclick = showSaved;
 document.querySelector('#save-build').onclick = showSave;
 document.querySelector('#power-toggle').onclick = () => togglePower();
 document.querySelector('#camera-reset').onclick = () => scene?.resetCamera();
+document.querySelector('#inspection-toggle').onclick = event => {
+  inspectionOpen = !inspectionOpen;
+  scene?.setInspection(inspectionOpen);
+  event.currentTarget.setAttribute('aria-pressed', String(inspectionOpen));
+  event.currentTarget.querySelector('span').textContent = inspectionOpen ? 'Собрать обратно' : 'Разнести детали';
+  event.currentTarget.title = inspectionOpen ? 'Собрать детали обратно' : 'Разнести детали для осмотра';
+};
 document.querySelector('#side-toggle').onclick = event => {
   sideOpen = !sideOpen; scene?.setSide(sideOpen);
   const button = event.currentTarget;
@@ -487,7 +496,7 @@ document.querySelector('#new-build').onclick = () => {
 };
 document.querySelector('#about-open').onclick = () => {
   const body = openPanel('О проекте');
-  body.innerHTML = '<p class="description">СБОРКА — учебный каталог комплектующих с визуальным конфигуратором ПК. Соберите компьютер, проверьте основные параметры совместимости и сохраните конфигурацию.</p><p class="muted">3D-модели схематичные. Цвета, формы и характеристики нужно сверять с документацией производителей. Расчёт мощности приблизительный.</p><p class="muted">Начальные цены демонстрационные. Для DNS доступна ссылка на поиск. Автоматическое получение цен требует подключения источника данных.</p><p class="muted">Черновик хранится в этом браузере. Сохранённые сборки доступны после входа, хранятся в PostgreSQL и доступны только владельцу.</p>';
+  body.innerHTML = '<p class="description">СБОРКА — учебный каталог комплектующих с визуальным конфигуратором ПК. Соберите компьютер, проверьте основные параметры совместимости и сохраните конфигурацию.</p><p class="muted">3D-модели параметрические: учитываются длина видеокарты, высота кулера, количество вентиляторов и цвет. Точные формы конкретного артикула нужно сверять с производителем. Расчёт мощности приблизительный.</p><p class="muted">Начальные цены демонстрационные. Для DNS доступна ссылка на поиск. Автоматическое получение цен требует подключения источника данных.</p><p class="muted">Черновик хранится в этом браузере. Сохранённые сборки доступны после входа, хранятся в PostgreSQL и доступны только владельцу.</p>';
 };
 panel.addEventListener('click', event => { if (event.target === panel) { const rect = panel.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) panel.close(); } });
 
