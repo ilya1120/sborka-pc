@@ -3,6 +3,8 @@ import { categories, initialProducts, defaultBuild, specLabels } from './catalog
 import { selectedProducts, totalPrice, estimatedPower, checkCompatibility } from './build.js';
 import { database, loadCatalog, getProfile, explainError } from './api.js';
 import { PCScene } from './scene.js';
+import { productImages } from './product-images.js';
+import { lightingColors, lightingModes, validLightingMode } from './lighting.js';
 
 const paths = {
   cpu: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v4m6-4v4M9 19v4m6-4v4M1 9h4m-4 6h4m14-6h4m-4 6h4"/>',
@@ -50,7 +52,7 @@ try {
     build = Object.fromEntries(categories.map(({ id }) => [id, typeof draft.components[id] === 'string' ? draft.components[id] : null]));
     buildName = String(draft.name || buildName).slice(0, 80);
     if (/^#[0-9a-f]{6}$/i.test(draft.rgbColor)) rgbColor = draft.rgbColor;
-    if (['static', 'rainbow', 'breathe'].includes(draft.rgbMode)) rgbMode = draft.rgbMode;
+    rgbMode = validLightingMode(draft.rgbMode);
   }
 } catch { /* Повреждённый локальный черновик заменяется начальной сборкой. */ }
 
@@ -71,7 +73,19 @@ app.innerHTML = `
         <div class="scene-fallback" id="scene-fallback" hidden>Браузер не смог запустить 3D. Каталог и сборка доступны в списке справа.</div>
         <div class="scene-tools"><button class="tool-button" id="camera-reset" title="Вернуть исходный ракурс" aria-label="Вернуть исходный ракурс">${icon('reset')}</button><button class="tool-button" id="side-toggle" title="Закрыть боковую стенку" aria-label="Закрыть боковую стенку" aria-pressed="false">${icon('layers')}</button></div>
         <div class="stage-bottom"><span class="gesture-hint">Перетаскивай, чтобы вращать <span>·</span> Прокручивай, чтобы приблизить</span><button class="power-button" id="power-toggle" aria-pressed="false">${icon('power')}<span>Включить ПК</span></button></div>
-        <div class="lighting-bar"><div class="lighting-title">${icon('fan')} Подсветка</div><div class="swatches" aria-label="Цвет подсветки">${['#69f2b2', '#79b8ff', '#b898ff', '#ff91bd', '#ffb875', '#ffffff'].map(color => `<button class="swatch" data-color="${color}" style="--swatch:${color}" aria-label="Цвет ${color}" aria-pressed="${color === rgbColor}"></button>`).join('')}<label class="custom-color" title="Выбрать свой цвет"><input id="custom-color" type="color" value="${rgbColor}" aria-label="Свой цвет подсветки"/>+</label></div><select id="rgb-mode" aria-label="Режим подсветки"><option value="static">Постоянный</option><option value="breathe">Дыхание</option><option value="rainbow">Радуга</option></select></div>
+        <div class="lighting-bar">
+          <div class="lighting-title">${icon('fan')} Подсветка</div>
+          <div class="swatches" aria-label="Цвет подсветки">
+            ${lightingColors.map(color => `<button class="swatch" data-color="${color.value}" style="--swatch:${color.value}" title="${color.name}" aria-label="${color.name}" aria-pressed="${color.value === rgbColor}"></button>`).join('')}
+            <label class="custom-color" title="Свой цвет"><input id="custom-color" type="color" value="${rgbColor}" aria-label="Свой цвет подсветки"/>+</label>
+          </div>
+          <details class="lighting-mode" id="lighting-mode">
+            <summary aria-label="Режим подсветки"><span id="rgb-mode-label">Постоянный</span>${icon('arrow')}</summary>
+            <div class="lighting-menu" role="group" aria-label="Режимы подсветки">
+              ${lightingModes.map(mode => `<button data-mode="${mode.id}" aria-pressed="${mode.id === rgbMode}">${mode.id === 'rgb' || mode.id === 'rainbow' ? '<span class="rainbow-indicator"></span>' : icon(mode.id === 'static' ? 'power' : 'fan')}<span>${mode.name}</span></button>`).join('')}
+            </div>
+          </details>
+        </div>
       </section>
       <section class="build-card" aria-label="Комплектующие сборки">
         <div class="build-heading"><div><span class="eyebrow">КОНФИГУРАЦИЯ</span><h2 id="build-title"></h2></div><span id="parts-count"></span></div>
@@ -131,6 +145,16 @@ function sourceURL(value) {
   try { const parsed = new URL(value); return parsed.protocol === 'https:' ? parsed.href : null; } catch { return null; }
 }
 
+function productPhoto(item, className = '') {
+  const photo = productImages[item.id];
+  const url = sourceURL(item.appearance?.image_url) || (photo ? `${import.meta.env.BASE_URL}${photo.path}` : null);
+  return `<div class="product-art ${className}" style="--product-color:${escape(item.appearance.color)}">
+    <span class="photo-fallback">${icon(categoryById(item.category).icon)}</span>
+    ${url ? `<img src="${escape(url)}" alt="${escape(item.name)}" loading="lazy" decoding="async"/>` : '<span class="photo-missing">Фото пока нет</span>'}
+    ${item.appearance.rgb ? '<span class="rgb-tag">RGB</span>' : ''}
+  </div>`;
+}
+
 function showCatalog(category = catalogCategory) {
   catalogCategory = category;
   const body = openPanel('Каталог комплектующих', 'Выбери деталь — она появится в твоей сборке.', true);
@@ -144,7 +168,7 @@ function showCatalog(category = catalogCategory) {
     body.querySelector('#catalog-count').textContent = `Найдено ${products.length}`;
     body.querySelector('#product-grid').innerHTML = products.length ? products.map(item => {
       const selected = build[item.category] === item.id;
-      return `<article class="product-card"><div class="product-art" style="--product-color:${escape(item.appearance.color)}">${icon(categoryById(item.category).icon)}${item.appearance.rgb ? '<span class="rgb-tag">RGB</span>' : ''}</div><div class="product-brand">${escape(item.brand)}</div><h3>${escape(item.name)}</h3><p class="product-summary">${escape(Object.entries(item.specs).slice(0, 3).map(([key, value]) => `${specLabels[key] || key} ${Array.isArray(value) ? value.join(', ') : value}`).join(' · '))}</p><button class="details-link" data-details="${escape(item.id)}">Характеристики ${icon('arrow')}</button><div class="product-bottom"><div><strong>${money(item.price)} ₽</strong><small>${item.price_source === 'demo' ? 'Примерная цена' : 'Цена из каталога'}</small></div><button class="choose-button ${selected ? 'chosen' : ''}" data-choose="${escape(item.id)}">${selected ? icon('check') + 'В сборке' : icon('plus') + 'Выбрать'}</button></div></article>`;
+      return `<article class="product-card">${productPhoto(item)}<div class="product-brand">${escape(item.brand)}</div><h3>${escape(item.name)}</h3><p class="product-summary">${escape(Object.entries(item.specs).slice(0, 3).map(([key, value]) => `${specLabels[key] || key} ${Array.isArray(value) ? value.join(', ') : value}`).join(' · '))}</p><button class="details-link" data-details="${escape(item.id)}">Характеристики ${icon('arrow')}</button><div class="product-bottom"><div><strong>${money(item.price)} ₽</strong><small>${item.price_source === 'demo' ? 'Примерная цена' : 'Цена из каталога'}</small></div><button class="choose-button ${selected ? 'chosen' : ''}" data-choose="${escape(item.id)}">${selected ? icon('check') + 'В сборке' : icon('plus') + 'Выбрать'}</button></div></article>`;
     }).join('') : '<div class="empty-state">Нет подходящих товаров. Измените поиск или отключите фильтр совместимости.</div>';
   };
   body.querySelector('#catalog-search').oninput = renderProducts;
@@ -161,7 +185,7 @@ function showCatalog(category = catalogCategory) {
       const item = catalog.find(product => product.id === choose.dataset.choose);
       if (!item) return;
       build[item.category] = item.id;
-      renderBuild(); renderProducts();
+      renderBuild(); panel.close();
       toast(`${item.name} добавлен в сборку`);
     }
     const details = event.target.closest('[data-details]');
@@ -175,7 +199,7 @@ function showProduct(id) {
   if (!item) return;
   const body = openPanel(item.name, categoryById(item.category).name);
   const source = sourceURL(item.source_url);
-  body.innerHTML = `<div class="product-art large-art" style="--product-color:${escape(item.appearance.color)}">${icon(categoryById(item.category).icon)}</div><p class="description">${escape(item.description)}</p><dl class="spec-list">${Object.entries(item.specs).map(([key, value]) => `<div><dt>${escape(specLabels[key] || key)}</dt><dd>${escape(Array.isArray(value) ? value.join(', ') : value)}</dd></div>`).join('')}<div><dt>Цвет модели</dt><dd><span class="color-chip" style="background:${escape(item.appearance.color)}"></span>${escape(item.appearance.color)}</dd></div><div><dt>Подсветка</dt><dd>${item.appearance.rgb ? 'Есть' : 'Нет'}</dd></div></dl><div class="price-box"><strong>${money(item.price)} ₽</strong><p>${item.price_source === 'demo' ? 'Примерная учебная цена. Автоматическое обновление из DNS пока не подключено.' : `Источник: ${escape(item.price_source)}. Обновлено: ${item.price_updated_at ? new Date(item.price_updated_at).toLocaleString('ru-RU') : 'дата не указана'}.`}</p>${source ? `<a class="details-link" href="${escape(source)}" target="_blank" rel="noopener noreferrer">${item.price_source === 'demo' ? 'Найти в DNS' : 'Открыть источник'} ${icon('external')}</a>` : ''}</div><p class="muted">3D-модель схематичная. Геометрия и оттенки могут отличаться от реального товара. Перед покупкой сверяйте данные с производителем.</p><button class="primary-button" id="detail-choose">${icon('plus')} Добавить в сборку</button><button class="secondary-button" id="back-catalog">Вернуться в каталог</button>`;
+  body.innerHTML = `${productPhoto(item, 'large-art')}<p class="description">${escape(item.description)}</p><dl class="spec-list">${Object.entries(item.specs).map(([key, value]) => `<div><dt>${escape(specLabels[key] || key)}</dt><dd>${escape(Array.isArray(value) ? value.join(', ') : value)}</dd></div>`).join('')}<div><dt>Цвет модели</dt><dd><span class="color-chip" style="background:${escape(item.appearance.color)}"></span>${escape(item.appearance.color)}</dd></div><div><dt>Подсветка</dt><dd>${item.appearance.rgb ? 'Есть' : 'Нет'}</dd></div></dl><div class="price-box"><strong>${money(item.price)} ₽</strong><p>${item.price_source === 'demo' ? 'Примерная учебная цена. Автоматическое обновление из DNS пока не подключено.' : `Источник: ${escape(item.price_source)}. Обновлено: ${item.price_updated_at ? new Date(item.price_updated_at).toLocaleString('ru-RU') : 'дата не указана'}.`}</p>${source ? `<a class="details-link" href="${escape(source)}" target="_blank" rel="noopener noreferrer">${item.price_source === 'demo' ? 'Найти в DNS' : 'Открыть источник'} ${icon('external')}</a>` : ''}</div><p class="muted">3D-модель схематичная. Геометрия и оттенки могут отличаться от реального товара. Перед покупкой сверяйте данные с производителем.</p><button class="primary-button" id="detail-choose">${icon('plus')} Добавить в сборку</button><button class="secondary-button" id="back-catalog">Вернуться в каталог</button>`;
   body.querySelector('#detail-choose').onclick = () => { build[item.category] = item.id; renderBuild(); panel.close(); toast('Комплектующее добавлено'); };
   body.querySelector('#back-catalog').onclick = () => showCatalog(item.category);
 }
@@ -206,11 +230,12 @@ function togglePower(force) {
 }
 
 function setLighting(color = rgbColor, mode = rgbMode) {
-  rgbColor = color; rgbMode = mode;
+  rgbColor = color; rgbMode = validLightingMode(mode);
   scene?.setRGB(rgbColor, rgbMode);
   document.querySelectorAll('.swatch').forEach(button => button.setAttribute('aria-pressed', button.dataset.color === rgbColor));
   document.querySelector('#custom-color').value = rgbColor;
-  document.querySelector('#rgb-mode').value = rgbMode;
+  document.querySelector('#rgb-mode-label').textContent = lightingModes.find(item => item.id === rgbMode).name;
+  document.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', button.dataset.mode === rgbMode));
   persistDraft();
 }
 
@@ -366,7 +391,7 @@ function showProductEditor(existing = null) {
   const body = openPanel(existing ? 'Редактировать товар' : 'Новое комплектующее');
   const item = existing || { category: 'cpu', name: '', brand: '', price: 0, description: '', specs: { ...initialProducts[0].specs }, appearance: { color: '#25282c', rgb: false }, source_url: '', active: true };
   const field = (label, name, value, type = 'text', extra = '') => `<label class="field-label">${label}<input type="${type}" name="${name}" value="${escape(value)}" ${extra}/></label>`;
-  body.innerHTML = `<form id="product-form"><label class="field-label">Категория<select name="category" ${existing ? 'disabled' : ''}>${categories.map(category => `<option value="${category.id}" ${category.id === item.category ? 'selected' : ''}>${category.name}</option>`).join('')}</select></label>${field('Название', 'name', item.name, 'text', 'required maxlength="160"')}${field('Производитель', 'brand', item.brand, 'text', 'required maxlength="80"')}${field('Цена, ₽', 'price', item.price, 'number', 'min="0" max="10000000" step="0.01" required')}<label class="field-label">Описание<textarea name="description" maxlength="2000" required>${escape(item.description)}</textarea></label><div class="editor-subheading">Характеристики</div><div id="spec-fields"></div><div class="form-grid">${field('Цвет', 'color', item.appearance.color, 'color')}<label class="checkbox-field"><input type="checkbox" name="rgb" ${item.appearance.rgb ? 'checked' : ''}/> Есть RGB-подсветка</label></div>${field('Ссылка на товар в магазине', 'source_url', item.source_url || '', 'url')}<p class="muted">Цвет и характеристики управляют схематичной 3D-моделью. После изменения цены источником станет ручное обновление администратора.</p><button class="primary-button" type="submit">Сохранить товар</button><button class="secondary-button" type="button" id="editor-back">Вернуться к каталогу</button><p id="editor-status" role="status"></p></form>`;
+  body.innerHTML = `<form id="product-form"><label class="field-label">Категория<select name="category" ${existing ? 'disabled' : ''}>${categories.map(category => `<option value="${category.id}" ${category.id === item.category ? 'selected' : ''}>${category.name}</option>`).join('')}</select></label>${field('Название', 'name', item.name, 'text', 'required maxlength="160"')}${field('Производитель', 'brand', item.brand, 'text', 'required maxlength="80"')}${field('Цена, ₽', 'price', item.price, 'number', 'min="0" max="10000000" step="0.01" required')}<label class="field-label">Описание<textarea name="description" maxlength="2000" required>${escape(item.description)}</textarea></label><div class="editor-subheading">Характеристики</div><div id="spec-fields"></div><div class="form-grid">${field('Цвет', 'color', item.appearance.color, 'color')}<label class="checkbox-field"><input type="checkbox" name="rgb" ${item.appearance.rgb ? 'checked' : ''}/> Есть RGB-подсветка</label></div>${field('Фотография товара — прямая ссылка HTTPS', 'image_url', item.appearance.image_url || '', 'url')}${field('Ссылка на товар в магазине', 'source_url', item.source_url || '', 'url')}<p class="muted">Цвет и характеристики управляют схематичной 3D-моделью. После изменения цены источником станет ручное обновление администратора.</p><button class="primary-button" type="submit">Сохранить товар</button><button class="secondary-button" type="button" id="editor-back">Вернуться к каталогу</button><p id="editor-status" role="status"></p></form>`;
   const form = body.querySelector('form');
   const renderSpecs = specs => {
     body.querySelector('#spec-fields').innerHTML = Object.entries(specs).map(([key, value]) => field(specLabels[key] || key, `spec_${key}`, Array.isArray(value) ? value.join(', ') : value, typeof value === 'number' ? 'number' : 'text', `required ${typeof value === 'number' ? 'min="0" max="10000000" step="1"' : 'maxlength="160"'}`)).join('');
@@ -390,7 +415,7 @@ function showProductEditor(existing = null) {
         id: existing?.id || crypto.randomUUID(), category,
         name: values.get('name').trim(), brand: values.get('brand').trim(), description: values.get('description').trim(),
         price: Number(values.get('price')), specs,
-        appearance: { color: values.get('color'), rgb: values.get('rgb') === 'on' },
+        appearance: { ...item.appearance, color: values.get('color'), rgb: values.get('rgb') === 'on', image_url: sourceURL(values.get('image_url')) },
         source_url: sourceURL(values.get('source_url')),
         active: item.active,
         price_source: existing?.price === Number(values.get('price')) ? existing.price_source : 'manual',
@@ -416,7 +441,12 @@ app.addEventListener('click', event => {
   const remove = event.target.closest('[data-remove]');
   if (remove) { build[remove.dataset.remove] = null; renderBuild(); }
   const color = event.target.closest('[data-color]');
-  if (color) setLighting(color.dataset.color);
+  if (color) setLighting(color.dataset.color, 'static');
+  const mode = event.target.closest('[data-mode]');
+  if (mode) {
+    setLighting(rgbColor, mode.dataset.mode);
+    document.querySelector('#lighting-mode').open = false;
+  }
 });
 document.querySelector('#catalog-open').onclick = () => showCatalog();
 document.querySelector('#builder-open').onclick = () => { if (panel.open) panel.close(); };
@@ -432,8 +462,18 @@ document.querySelector('#side-toggle').onclick = event => {
   button.setAttribute('aria-label', sideOpen ? 'Закрыть боковую стенку' : 'Открыть боковую стенку');
   button.title = button.getAttribute('aria-label');
 };
-document.querySelector('#custom-color').oninput = event => setLighting(event.target.value);
-document.querySelector('#rgb-mode').onchange = event => setLighting(rgbColor, event.target.value);
+document.querySelector('#custom-color').oninput = event => setLighting(event.target.value, 'static');
+document.addEventListener('click', event => {
+  if (!event.target.closest('#lighting-mode')) document.querySelector('#lighting-mode').open = false;
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') document.querySelector('#lighting-mode').open = false;
+});
+document.addEventListener('error', event => {
+  if (event.target instanceof HTMLImageElement && event.target.closest('.product-art')) {
+    event.target.closest('.product-art').classList.add('photo-unavailable');
+  }
+}, true);
 document.querySelector('#new-build').onclick = () => {
   const body = openPanel('Новая сборка');
   body.innerHTML = '<p class="description">Текущий черновик будет заменён. Сохранённые в аккаунте сборки останутся доступны.</p><button class="primary-button" id="start-empty">Начать с пустого корпуса</button><button class="secondary-button" id="start-example">Открыть пример сборки</button>';
