@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildDetailedPC } from './scene-model.js';
 
 const material = (color, metalness = 0.35, roughness = 0.45) => new THREE.MeshStandardMaterial({ color, metalness, roughness });
@@ -14,6 +15,7 @@ export class PCScene {
     this.openSide = true;
     this.fans = [];
     this.leds = [];
+    this.textureCache = new Map();
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color('#161c1d');
     this.scene.fog = new THREE.Fog('#161c1d', 17, 33);
@@ -25,7 +27,13 @@ export class PCScene {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 0.9;
+    const studio = new RoomEnvironment();
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.environment = pmrem.fromScene(studio, 0.04);
+    this.scene.environment = this.environment.texture;
+    this.scene.environmentIntensity = 0.4;
+    studio.dispose(); pmrem.dispose();
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.setAttribute('aria-label', 'Трёхмерная модель сборки ПК. Перетаскивайте для вращения, прокручивайте для приближения.');
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -37,19 +45,20 @@ export class PCScene {
     this.controls.enablePan = true;
     this.exploded = false;
     this.inspectionPanels = [];
-    this.scene.add(new THREE.HemisphereLight(0xdbeafa, 0x27383b, 1.65));
-    const key = new THREE.DirectionalLight(0xffffff, 3.2);
+    this.scene.add(new THREE.HemisphereLight(0xe4edf3, 0x27383b, 0.9));
+    const key = new THREE.DirectionalLight(0xffffff, 2.4);
     key.position.set(3, 7, 5);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.left = -5; key.shadow.camera.right = 5;
     key.shadow.camera.top = 6; key.shadow.camera.bottom = -5;
-    key.shadow.normalBias = 0.03;
+    key.shadow.normalBias = 0.005;
+    key.shadow.bias = -0.00015;
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0x8ca8c9, 3);
+    const rim = new THREE.DirectionalLight(0xb8cedf, 1.4);
     rim.position.set(-5, 3, -4);
     this.scene.add(rim);
-    const frontFill = new THREE.DirectionalLight(0xdfece6, 1.8);
+    const frontFill = new THREE.DirectionalLight(0xdfece6, 1.1);
     frontFill.position.set(-2, 1, 7);
     this.scene.add(frontFill);
     this.rgbLight = new THREE.PointLight(this.rgbColor, 0, 6, 2);
@@ -57,14 +66,9 @@ export class PCScene {
     this.scene.add(this.rgbLight);
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), material('#161c1d', 0.15, 0.8));
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -2.36;
+    floor.position.y = -2.11;
     floor.receiveShadow = true;
     this.scene.add(floor);
-    const grid = new THREE.GridHelper(20, 40, '#2d3a3b', '#233031');
-    grid.position.y = -2.355;
-    grid.material.transparent = true;
-    grid.material.opacity = 0.42;
-    this.scene.add(grid);
     this.model = new THREE.Group();
     this.scene.add(this.model);
     this.raycaster = new THREE.Raycaster();
@@ -158,7 +162,7 @@ export class PCScene {
     canvas.width = 1024; canvas.height = 256;
     const context = canvas.getContext('2d');
     context.fillStyle = color;
-    context.font = '600 116px Arial';
+    context.font = `600 ${Math.min(116, 1550 / Math.max(text.length, 1))}px Arial`;
     context.textAlign = 'center'; context.textBaseline = 'middle';
     context.fillText(text, 512, 128);
     const texture = new THREE.CanvasTexture(canvas);
@@ -167,6 +171,21 @@ export class PCScene {
     const label = new THREE.Mesh(new THREE.PlaneGeometry(width, height), new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }));
     label.position.set(...position);
     parent.add(label);
+    return label;
+  }
+
+  textureFor(path, crop) {
+    if (!this.textureCache) return null;
+    const key = `${path}:${crop || ''}`;
+    if (!this.textureCache.has(key)) {
+      const texture = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}${path}`);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+      texture.userData.cached = true;
+      if (crop) { texture.offset.set(crop[0], crop[1]); texture.repeat.set(crop[2] - crop[0], crop[3] - crop[1]); }
+      this.textureCache.set(key, texture);
+    }
+    return this.textureCache.get(key);
   }
 
   component(category) {
@@ -183,7 +202,7 @@ export class PCScene {
       object.geometry?.dispose();
       if (object.material) {
         const materials = Array.isArray(object.material) ? object.material : [object.material];
-        materials.forEach(mat => { mat.map?.dispose(); mat.alphaMap?.dispose(); mat.dispose(); });
+        materials.forEach(mat => { if (!mat.map?.userData.cached) mat.map?.dispose(); mat.alphaMap?.dispose(); mat.dispose(); });
       }
     });
     this.model.clear();
