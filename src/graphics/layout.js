@@ -12,7 +12,7 @@ export function getLayout(parts) {
   const base = -210;
   const chassis = { ...cp, D: cp.D, W: cp.W, H: cp.H, base, shellBase: base + 18, top: base + cp.H, rear: -cp.D / 2, front: cp.D / 2, ap201, profile: cp };
   const bp = motherboardProfiles[parts.motherboard?.id] || { width: 244, height: 244, cpuX: 102, cpuY: 76, ramX: 167, ramTop: 19, pcieY: 138, atxX: 230, atxY: 90, epsX: 36, epsY: 8 };
-  const left = chassis.rear + 24, top = chassis.top - 22, z = -cp.W / 2 + 31;
+  const left = chassis.rear + 10, top = chassis.top - 22, z = -cp.W / 2 + 31;
   const board = {
     left, top, z, width: bp.width, height: bp.height, profile: bp,
     cpu: { x: left + bp.cpuX, y: top - bp.cpuY, z: z + 8 },

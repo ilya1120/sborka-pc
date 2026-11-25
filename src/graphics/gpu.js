@@ -1,9 +1,10 @@
 import * as THREE from 'three';
+import { rearSheet, rearSocket } from './rear-io.js';
 
 // External dimensions and power connectors are from manufacturer specification pages.
 // Fine mouldings are interpreted from the catalogue photographs, not manufacturer CAD.
 export const gpuProfiles = {
-  'gpu-msi-4060': { length: 199, height: 120, thickness: 41, powerType: '8pin', powerCount: 1, powerAt: 0.68, fanCount: 2, fanDiameter: 88, blades: 9, style: 'ventus-black', pcbLength: 166 },
+  'gpu-msi-4060': { length: 199, height: 120, thickness: 41, powerType: '8pin', powerCount: 1, powerAt: 0.68, fanCount: 2, fanDiameter: 88, blades: 10, style: 'ventus-black', pcbLength: 166 },
   'gpu-gigabyte-4070': { length: 300, height: 130, thickness: 57.6, powerType: '16pin', powerCount: 1, powerAt: 0.60, fanCount: 3, fanDiameter: 90, blades: 9, style: 'aero', pcbLength: 205 },
   'gpu-sapphire-7800': { length: 280, height: 128.75, thickness: 52.57, powerType: '8pin', powerCount: 2, powerAt: 0.57, fanCount: 2, fanDiameter: 100, blades: 9, style: 'pulse-7800', pcbLength: 236 },
   'gpu-palit-5060-dual': { length: 262.1, height: 126.3, thickness: 40.1, powerType: '8pin', powerCount: 1, powerAt: 0.64, fanCount: 2, fanDiameter: 95, blades: 9, style: 'palit-dual', pcbLength: 186 },
@@ -62,8 +63,22 @@ export function buildGPU(ctx, part) {
   ctx.boxes(group, [0.8, 1.9, 5], contacts, gold);
   ctx.box(group, [5, 3, 6], [rear + 51, y, z], black);
   // The fin packs remain exposed through both long sides and the fan openings.
-  const finPositions = Array.from({ length: Math.max(20, Math.floor((length - 12) / 1.75)) }, (_, i) => [rear + 6 + i * (length - 12) / (Math.floor((length - 12) / 1.75) - 1), y - thickness / 2 + 0.5, centerZ]);
-  ctx.boxes(group, [0.32, thickness - 13, height - 11], finPositions, silver);
+  const finTop = y - 3, finBottom = y - thickness + 15;
+  // Two independent fin banks, separated around the heatpipe bends. Neither
+  // fills the impellers' 10mm-deep swept volume on the underside.
+  for (const [start,end] of [[8,length*.46],[length*.5,length-8]]) {
+    const count = Math.floor((end-start)/1.55);
+    const fins = Array.from({length:count},(_,i)=>[rear+start+i*(end-start)/(count-1),(finTop+finBottom)/2,centerZ]);
+    ctx.boxes(group,[.27,finTop-finBottom,height-13],fins,silver);
+    for (const edge of [-1,1]) ctx.box(group,[end-start,1.1,4],[rear+(start+end)/2,finBottom+3,centerZ+edge*(height/2-9)],silver);
+  }
+  // Contact/cold plate, memory packages and VRM are separate from the fin stacks.
+  ctx.box(group,[42,3,42],[rear+length*.33,y-3.3,centerZ],ctx.mat('#89959f',.85,.26),2);
+  for (const xx of [-1,1]) for (const zz of [-1,1]) {
+    ctx.box(group,[12,1.7,14],[rear+length*.33+xx*30,y-1.4,centerZ+zz*28],black,.5);
+    ctx.screw(group,[rear+length*.33+xx*22,y+4.8,centerZ+zz*22],'y',1.5);
+  }
+  ctx.boxes(group,[6,3.5,7],Array.from({length:6},(_,i)=>[rear+p.pcbLength-18,y-2.5,z+15+i*13]),ctx.mat('#4d555b',.3,.55));
   const pipeCount = p.style === 'aero' ? 6 : p.style.startsWith('pulse') ? 4 : 3;
   for (let n = 0; n < pipeCount; n++) {
     const rz = z + 20 + n * (height - 40) / Math.max(1, pipeCount - 1);
@@ -76,14 +91,18 @@ export function buildGPU(ctx, part) {
   fanPositions.forEach(fx => { const hole = new THREE.Path(); hole.absarc(fx, 0, p.fanDiameter * 0.48, 0, Math.PI * 2, true); shroud.holes.push(hole); });
   plate(group, shroud, 3, [x, y - thickness + 4, centerZ], plastic);
   // Rounded end caps, corner facets and long side rails leave the heatsink open.
-  for (const end of [-1, 1]) ctx.box(group, [3.3, thickness - 6, height - 14], [x + end * (length / 2 - 2), y - thickness / 2, centerZ], plastic, 1.2);
+  for (const end of [-1, 1]) {
+    // Open folded end flanges expose fin ends and pipe returns.
+    for (const edge of [-1,1]) ctx.box(group,[3.3,thickness-7,7],[x+end*(length/2-2),y-thickness/2,centerZ+edge*(height/2-8)],plastic,1.1);
+    ctx.box(group,[3.3,6,height-14],[x+end*(length/2-2),y-thickness+7,centerZ],plastic,1.1);
+  }
   for (const edge of [-1, 1]) {
     ctx.box(group, [length - 7, 5.2, 3.5], [x, y - thickness + 8, centerZ + edge * (height / 2 - 3)], plastic, 1.4);
     ctx.box(group, [length - 8, 5, 2], [x, y - 7, centerZ + edge * (height / 2 - 5)], plastic, 0.7);
   }
   for (let n = 0; n < p.fanCount; n++) {
     const fx = x + fanPositions[n];
-    ctx.fan(group, [fx, y - thickness + 5.5, centerZ], p.fanDiameter, { axis: '-y', frame: false, depth: 8, rgb: false, blades: p.blades, color: p.style === 'aero' ? '#e0e3e6' : '#282d33', label: part.brand.toUpperCase() });
+    ctx.fan(group, [fx, y - thickness + 5.5, centerZ], p.fanDiameter, { axis: '-y', frame: false, depth: 8, rgb: false, blades: p.blades, paired:p.style==='ventus-black', reverse:/aero|windforce/.test(p.style) && n%2===1, color: p.style === 'aero' ? '#e0e3e6' : '#282d33', label: part.brand.toUpperCase() });
     for (const edge of [-1, 1]) ctx.screw(group, [fx + edge * p.fanDiameter * 0.38, y - thickness + 2, centerZ + (n % 2 ? -1 : 1) * p.fanDiameter * 0.36], '-y', 1.45);
   }
   // MSI diagonal facets, Palit curved lines and Sapphire red perimeter trim are distinct.
@@ -118,10 +137,16 @@ export function buildGPU(ctx, part) {
   ctx.label(group, p.style === 'aero' ? 'AERO' : part.brand.toUpperCase(), Math.min(70, length * 0.3), 10, [rear + length * 0.37, y + 4.9, centerZ], p.style === 'aero' ? '#767d84' : '#a5abb1', 'y');
 
   const sideY = y - Math.min(16, thickness * 0.38);
-  const sidePlate = ctx.box(group, [length * 0.66, 11, 1.7], [x - 5, sideY, z + height - 0.4], plastic, 0.6);
+  const sidePlate = ctx.box(group, [length * .43, 10, 1.7], [rear+length*.31, sideY, z + height - 0.4], plastic, 0.6);
   sidePlate.userData.detail = 'side-brand-rail';
   const text = part.brand === 'Sapphire' ? 'SAPPHIRE  RADEON' : p.style === 'aero' ? 'GIGABYTE  AERO' : 'GEFORCE RTX';
-  ctx.label(group, text, length * 0.56, 7, [x - 5, sideY, z + height + 0.7], p.style === 'aero' ? '#59616b' : '#c0c6cc');
+  ctx.label(group, text, length * .38, 5.5, [rear+length*.31, sideY, z + height + 0.7], p.style === 'aero' ? '#59616b' : '#c0c6cc');
+  // Narrow structural rails leave a broad side opening through the fins.
+  for (const t of [.09,.53,.92]) {
+    const brace=ctx.box(group,[4,thickness-15,2.2],[rear+length*t,y-thickness/2,z+height-1],plastic,.6);
+    brace.rotation.z = t>.5 ? -.12 : .12;
+  }
+  for (const xx of [rear+10,rear+length-10]) ctx.screw(group,[xx,sideY,z+height+.9],'z',1.5);
   if (part.appearance.rgb) {
     const diffuser = ctx.led();
     ctx.box(group, [p.style === 'aero' ? 50 : 55, 2.2, 1], [rear + length * 0.40, sideY - 5, z + height + 1], diffuser, 0.4);
@@ -129,13 +154,19 @@ export function buildGPU(ctx, part) {
 
   // PCIe bracket: actual two-slot geometry, ventilating slots and four output openings.
   const bracketX = rear - 2;
-  ctx.box(group, [1.1, Math.min(40, thickness), 116], [bracketX, y - 14, z + 52], silver, 0.4);
+  const bracket = new THREE.Group(); bracket.userData.keep = true; group.add(bracket);
+  const bracketCY=y-12.5, bracketCZ=z+57, bracketH=40;
+  const cutouts=[];
   const portZs = [z + 14, z + 41, z + 68, z + 95];
   portZs.forEach((pz, i) => {
-    ctx.box(group, [2.1, i === 0 ? 5.5 : 6.5, 17.8], [bracketX - 0.8, y - 8, pz], black, 1);
-    ctx.box(group, [2.3, i === 0 ? 2.8 : 3.8, 13.2], [bracketX - 1.4, y - 8, pz], ctx.mat('#62594d', 0.7, 0.4), 0.4);
+    const hdmi = p.style.startsWith('pulse') ? i<2 : i===0;
+    const socket=rearSocket(ctx,bracket,{x:bracketX-.4,y:y-7,z:pz,type:hdmi?'hdmi':'dp',depth:13});
+    const [sz,sy,w,h,t]=socket.hole; cutouts.push([sz-bracketCZ,sy-bracketCY,w,h,t]);
+    ctx.label(bracket,hdmi?'HDMI':'DP',9,2,[bracketX-1,y-14,pz],'#616a72','-x');
   });
-  ctx.boxes(group, [1.6, 2.5, 12], Array.from({ length: 8 }, (_, i) => [bracketX - 0.7, y - 27, z + 11 + i * 13]), black);
+  for(let i=0;i<13;i++) cutouts.push([-49+i*8, -11,4.5,6.5]);
+  rearSheet(bracket,bracketX,bracketCY,bracketCZ,120,bracketH,silver,cutouts);
+  for (const edge of [-1,1]) ctx.box(bracket,[4,bracketH,.8],[bracketX+1.5,bracketCY,bracketCZ+edge*60],silver);
   ctx.box(group, [9, 1.3, 15], [bracketX - 3, y + 5, z + height - 7], silver, 0.3);
   ctx.screw(group, [bracketX - 3, y + 5.7, z + height - 7], 'y', 2.1);
 
