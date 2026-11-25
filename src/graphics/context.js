@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildFan } from './fan.js';
 
 const U = 0.01;
 const axes = { x: [1, 0, 0], '-x': [-1, 0, 0], y: [0, 1, 0], '-y': [0, -1, 0], z: [0, 0, 1], '-z': [0, 0, -1] };
@@ -77,45 +78,7 @@ export function createModelContext(view, parts, layout) {
     result.userData.keep = true; result.castShadow = false; return result;
   };
   ctx.led = () => view.led();
-  ctx.fan = (parent, pos, diameter, options = {}) => {
-    const { rgb = false, color = '#24282d', axis = 'z', blades = 9, frame = true, label = '', ledSegments = 12, depth = frame ? 25 : 10 } = options;
-    const group = new THREE.Group(); group.position.set(...pos.map(v => v * U)); orient(group, axis); parent.add(group);
-    const plastic = ctx.mat(color, 0.08, 0.58), dark = ctx.mat('#161b20', 0.05, 0.75), tip = ctx.mat(rgb ? '#c5d0d4' : '#343a40', 0.05, 0.58);
-    const R = diameter * 0.435;
-    if (frame) {
-      for (const x of [-1, 1]) ctx.box(group, [diameter * 0.065, diameter, depth - 1], [x * diameter * 0.465, 0, 0], plastic, 1.7);
-      for (const y of [-1, 1]) ctx.box(group, [diameter, diameter * 0.065, depth - 1], [0, y * diameter * 0.465, 0], plastic, 1.7);
-      for (const x of [-1, 1]) for (const y of [-1, 1]) {
-        ctx.box(group, [diameter * 0.14, diameter * 0.14, depth], [x * diameter * 0.42, y * diameter * 0.42, 0], dark, 2.2);
-        ctx.screw(group, [x * diameter * 0.438, y * diameter * 0.438, depth / 2 + .5], 'z', 2.1);
-      }
-    }
-    ctx.torus(group, R, 1.6, [0, 0, depth * .24], plastic);
-    // Rear support struts stay fixed; only the actual impeller rotates.
-    const supports = new THREE.Group(); supports.position.z = (-depth / 2 + 2) * U; group.add(supports);
-    for (let i = 0; i < 4; i++) {
-      const bar = ctx.box(supports, [R, 4.5, 3], [R / 2, 0, 0], dark, 0.8);
-      bar.rotation.z = i * Math.PI / 2; bar.position.set(Math.cos(i * Math.PI / 2) * R / 2 * U, Math.sin(i * Math.PI / 2) * R / 2 * U, 0);
-    }
-    if (rgb) {
-      for (let i = 0; i < ledSegments; i++) {
-        const ring = new THREE.Mesh(new THREE.TorusGeometry((R - 1.5) * U, 1.8 * U, 8, 8, Math.PI * 2 / ledSegments + 0.012), ctx.led());
-        ring.rotation.z = i * Math.PI * 2 / ledSegments; ring.position.z = 7 * U; group.add(ring);
-      }
-    }
-    const rotor = new THREE.Group(); rotor.userData.dynamic = true; group.add(rotor); view.fans.push(rotor);
-    const bladeShape = new THREE.Shape();
-    const d = diameter * U;
-    bladeShape.moveTo(d * 0.105, -d * 0.028);
-    bladeShape.bezierCurveTo(d * 0.21, -d * 0.11, d * 0.39, -d * 0.10, d * 0.42, d * 0.065);
-    bladeShape.bezierCurveTo(d * 0.36, d * 0.15, d * 0.23, d * 0.075, d * 0.10, d * 0.033); bladeShape.closePath();
-    const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { depth: 1.3 * U, bevelEnabled: true, bevelSize: 0.45 * U, bevelThickness: 0.4 * U, bevelSegments: 2, curveSegments: 12, steps: 1 });
-    for (let i = 0; i < blades; i++) { const blade = new THREE.Mesh(bladeGeo, tip); blade.rotation.z = i * Math.PI * 2 / blades; blade.position.z = 1.5 * U; blade.castShadow = true; rotor.add(blade); }
-    ctx.cylinder(rotor, diameter * 0.105, Math.min(12, depth - 2), [0, 0, 0], plastic);
-    ctx.cylinder(rotor, diameter * 0.074, 0.6, [0, 0, Math.min(6, depth / 2 - 1) + .4], dark);
-    if (label) ctx.label(rotor, label, diameter * 0.14, diameter * 0.047, [0, 0, Math.min(6, depth / 2 - 1) + .8], '#c5cbd0');
-    group.userData.fanDiameter = diameter; return group;
-  };
+  ctx.fan = (parent, pos, diameter, options) => buildFan(ctx, parent, pos, diameter, options);
   ctx.holePanel = (parent, size, pos, material, axis = 'z', pitch = 4, hole = 2.4, square = false) => {
     if (typeof document === 'undefined') return orient(ctx.box(parent, [size[0], size[1], 0.8], pos, material), axis);
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;

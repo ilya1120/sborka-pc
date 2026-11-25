@@ -1,3 +1,5 @@
+import { buildBoardRearIO } from './rear-io.js';
+
 // Millimetres measured proportionally on each model's front photograph.
 // Locations are visual references rather than manufacturing/CAD tolerances.
 const profile = (id, data) => ({ width: 244, height: 244, dimmLength: 133.35,
@@ -78,17 +80,7 @@ export function buildMotherboard(ctx, part) {
     ctx.cylinder(group,2.8,6.6,pos(x,y,3.5),silver,'z',16);
     box([3,.3,.05],x,y,6.85,dark);
   }
-  // Rear I/O shield cans, with visible recessed openings toward the case rear.
-  const ioY=[20,43,64,87,111,135];
-  for(let i=0;i<ioY.length;i++) {
-    const y=ioY[i],h=i===0?16:19;
-    box([17,h,14],5,y,7,silver,.5);
-    const port=ctx.box(group,[.4,h-5,9],pos(-3.7,y,7),black);
-    if(i>1 && i<5) {
-      for(const dy of [-4,4]) ctx.box(group,[.5,5.5,2],pos(-3.95,y+dy,7),ctx.mat(i===3?'#246a9c':'#32383d',.1,.65));
-    }
-    port.userData.port='rearIO';
-  }
+  buildBoardRearIO(ctx, group, part);
   function connector(x,y,columns,rows,pitch,vertical=true) {
     const sx=vertical?rows*pitch+2:columns*pitch+2,sy=vertical?columns*pitch+2:rows*pitch+2;
     box([sx,sy,9],x,y,4.5,black);

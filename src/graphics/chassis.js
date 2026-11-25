@@ -97,7 +97,7 @@ export function buildChassis(ctx, part) {
     ctx.ports[`caseFan${i}`] = [front - 49, fy - 52, -46];
     if (part.appearance.rgb) ctx.ports[`caseARGB${i}`] = [front - 49, fy - 49, -43];
   }
-  const rearFanY = top - 78, rearFanZ = 25;
+  const rearFanY = top - 78, rearFanZ = 31;
   if (p.rearFans) {
     ctx.fan(group, [rear + 15, rearFanY, rearFanZ], 120, { rgb: !!part.appearance.rgb, color: white ? '#e5e7e7' : '#242a30', axis: '-x' });
     ctx.ports.caseFanRear = [rear + 28, rearFanY - 52, rearFanZ - 48];
@@ -105,14 +105,15 @@ export function buildChassis(ctx, part) {
 
   // Rear cutouts: IO shield, fan, expansion bays and PSU AC inlet remain open.
   const backCY = (shellBase + top) / 2, backH = top - shellBase;
-  const backHoles = [[b.z + 18, b.top - 83 - backCY, 47, 159, 1], [rearFanZ, rearFanY - backCY, 116, 116, 4], [22, ctx.layout.gpu.y - 32 - backCY, 125, p.slots * 20.3, 1]];
+  const slotHeight=p.slots*20.32, slotZ=ctx.layout.gpu.z+57;
+  const backHoles = [[b.z + 22.25, b.top - 83 - backCY, 45.5, 159, 1], [rearFanZ, rearFanY - backCY, 116, 116, 4], [slotZ, ctx.layout.gpu.y + 8 - slotHeight/2 - backCY, 120, slotHeight, 1]];
   if (!c.ap201) backHoles.push([0, ctx.layout.psu.y - backCY, 151, 87, 1]);
   sheet(ctx, group, W - 2, backH, [rear - 0.4, backCY, 0], '-x', steel, backHoles);
   ctx.holePanel(group, [116, 116], [rear - 0.9, rearFanY, rearFanZ], shell, '-x', 6, 4.2);
-  for (let slot = Math.ceil(ctx.layout.gpu.thickness / 20.3); slot < p.slots; slot++) {
-    const sy = ctx.layout.gpu.y - slot * 20.3 - 4;
-    ctx.holePanel(group, [113, 16.5], [rear - 1.2, sy, 22], steel, '-x', 5, 2.6);
-    ctx.screw(group, [rear - 2, sy, 85], '-x', 2.1);
+  for (let slot = ctx.parts.gpu ? 2 : 0; slot < p.slots; slot++) {
+    const sy = ctx.layout.gpu.y + 8 - (slot+.5)*20.32;
+    ctx.holePanel(group, [118, 18.5], [rear - 1.2, sy, slotZ], steel, '-x', 5, 2.6);
+    ctx.screw(group, [rear - 2, sy, slotZ+57], '-x', 2.1);
   }
 
   // PSU tunnel is a removable assembly for inspection, not an opaque scene block.
