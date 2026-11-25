@@ -258,7 +258,7 @@ export class PCScene {
       group.position.copy(offset);
       group.position.z += group.userData.installOffset || 0;
     });
-    if (this.powered && !reduced) this.fans.forEach(fan => { fan.rotation.z -= delta * 13; });
+    if (this.powered && !reduced) this.fans.forEach(fan => { fan.rotation.z += delta * 13 * (fan.userData.rotationDirection || -1); });
     const color = new THREE.Color(this.rgbColor);
     if (this.rgbMode === 'rgb' || this.rgbMode === 'rainbow') color.setHSL(reduced ? 0.35 : (this.time * 0.08) % 1, 0.95, 0.5);
     const intensity = this.powered ? (this.rgbMode === 'breathe' && !reduced ? 0.2 + (Math.sin(this.time * 2) + 1) * 0.6 : 1.25) : 0;
